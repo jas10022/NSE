@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, Column, Integer, Float, Date, String, Tabl
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker, Query
 from sqlalchemy.ext.automap import automap_base
-
+from flask_cors import CORS
 
 engine = create_engine('sqlite:///nse.db', convert_unicode=True, echo=False)
 Base = automap_base()
@@ -42,6 +42,7 @@ class NSE_Node(Base):
 
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/')
 def index():
@@ -69,4 +70,5 @@ def live():
     return jsonify({'status': 200, 'value': t})
 
 if (__name__ == "__main__"):
-    app.run(port = 8080)
+    app.run(host='0.0.0.0',port = 8080)
+
