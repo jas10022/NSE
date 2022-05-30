@@ -115,7 +115,7 @@
                                 formatAsPercent(value.deliv_per) + '</td>';
 
                             var v = value.deliv_qty * value.close_price|| 0;
-                            student += '<td>' + v + '</td>';
+                            student += '<td>' + v.toLocaleString('en-IN') + '</td>';
   
                             student += '</tr>';
                         });
