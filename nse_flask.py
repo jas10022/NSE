@@ -11,6 +11,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker, Query
 from sqlalchemy.ext.automap import automap_base
 from flask_cors import CORS
+import os
 
 engine = create_engine('sqlite:///nse.db', convert_unicode=True, echo=False)
 Base = automap_base()
@@ -40,6 +41,39 @@ class NSE_Node(Base):
     deliv_qty = Column(Float)
     deliv_per = Column(Float)
 
+def update_data(file):
+    db_session = scoped_session(sessionmaker(bind=engine))
+    data = pd.read_csv(file)
+    try:
+        temp = []
+        for index,i in data.iterrows():
+            temp.append((
+                    i['SYMBOL'],
+                    i[' SERIES'],
+                    i[' DATE1'].strip(),
+                    i[' PREV_CLOSE'],
+                    i[' OPEN_PRICE'],
+                    i[' HIGH_PRICE'],
+                    i[' LOW_PRICE'],
+                    i[' LAST_PRICE'],
+                    i[' CLOSE_PRICE'],
+                    i[' AVG_PRICE'],
+                    i[' TTL_TRD_QNTY'],
+                    i[' TURNOVER_LACS'],
+                    i[' NO_OF_TRADES'],
+                    i[' DELIV_QTY'],
+                    i[' DELIV_PER'],
+                ))
+        print(temp)
+        ins = """INSERT OR REPLACE INTO "NSE" (symbol, series, date, prev_close, open_price, high_price, low_price, last_price, close_price, avg_price, ttl_trd_qt, turnover_lakhs, no_of_trades, deliv_qty, deliv_per) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        engine.execute(ins,temp)
+        db_session().commit() #Attempt to commit all the records
+    except Exception as e:
+        print('exception', e)
+        db_session().rollback() #Rollback the changes on error
+    finally:
+        db_session().close() #Close the connections
+
 
 app = Flask(__name__)
 CORS(app)
@@ -68,6 +102,16 @@ def live():
     for i in q:
         t.append({'id':i.id, 'symbol':i.symbol, 'series': i.series, 'date': i.date, 'prev_close': i.prev_close, 'open_price':i.open_price,'high_price':i.high_price,'low_price':i.low_price,'last_price':i.last_price,'close_price':i.close_price,'avg_price':i.avg_price, 'ttl_trd_qt':i.ttl_trd_qt,'turnover_lakhs':i.turnover_lakhs, 'no_of_trades': i.no_of_trades, 'deliv_qty':i.deliv_qty, 'deliv_per':i.deliv_per})
     return jsonify({'status': 200, 'value': t})
+
+@app.route('/', methods= ["POST"])
+def uploadFile():
+    uploaded_file = request.files['file']
+    if uploaded_file.filename != '':
+        filepath = os.path.join('./upload/', uploaded_file.filename)
+        uploaded_file.save(filepath)
+        update_data(filepath)
+        os.remove(filepath)
+        return render_template('index.html')
 
 if (__name__ == "__main__"):
     app.run(host='0.0.0.0',port = 80)
