@@ -41,7 +41,7 @@ class NSE_Node(Base):
     deliv_qty = Column(Float)
     deliv_per = Column(Float)
 
-def update_data(file):
+def update_data_current(file):
     db_session = scoped_session(sessionmaker(bind=engine))
     data = pd.read_csv(file)
     try:
@@ -70,10 +70,44 @@ def update_data(file):
         db_session().commit() #Attempt to commit all the records
     except Exception as e:
         print('exception', e)
+        update_data_historic(file)
         db_session().rollback() #Rollback the changes on error
     finally:
         db_session().close() #Close the connections
 
+def update_data_historic(file):
+    db_session = scoped_session(sessionmaker(bind=engine))
+    data = pd.read_csv(file)
+    try:
+        print(data.columns)
+        temp = []
+        for index,i in data.iterrows():
+            temp.append((
+                    i[data.columns[0]],
+                    i[data.columns[1]],
+                    i[data.columns[2]].strip(),
+                    i[data.columns[3]],
+                    i[data.columns[4]],
+                    i[data.columns[5]],
+                    i[data.columns[6]],
+                    i[data.columns[7]],
+                    i[data.columns[8]],
+                    i[data.columns[9]],
+                    i[data.columns[10]],
+                    i[data.columns[11]],
+                    i[data.columns[12]],
+                    i[data.columns[13]],
+                    i[data.columns[14]],
+                ))
+        print(temp)
+        ins = """INSERT OR REPLACE INTO "NSE" (symbol, series, date, prev_close, open_price, high_price, low_price, last_price, close_price, avg_price, ttl_trd_qt, turnover_lakhs, no_of_trades, deliv_qty, deliv_per) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        engine.execute(ins,temp)
+        db_session().commit() #Attempt to commit all the records
+    except Exception as e:
+        print('exception', e)
+        db_session().rollback() #Rollback the changes on error
+    finally:
+        db_session().close() #Close the connections
 
 app = Flask(__name__)
 CORS(app)
@@ -109,7 +143,7 @@ def uploadFile():
     if uploaded_file.filename != '':
         filepath = os.path.join('./upload/', uploaded_file.filename)
         uploaded_file.save(filepath)
-        update_data(filepath)
+        update_data_current(filepath)
         os.remove(filepath)
         return render_template('index.html')
 
