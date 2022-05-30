@@ -116,6 +116,12 @@ CORS(app)
 def index():
     return render_template('index.html')
 
+@app.route('/ticker', methods= ["GET"])
+def ticker():
+    args = request.args
+    symbol = args.get("symbol")
+    return render_template('ticker_search_template.html', symbol=symbol)
+
 @app.route('/get_symbol', methods= ["GET"])
 def get_symbol():
     db_session = scoped_session(sessionmaker(bind=engine))
@@ -124,7 +130,7 @@ def get_symbol():
     q = db_session.query(NSE_Node.id, NSE_Node.symbol,NSE_Node.series,NSE_Node.date,NSE_Node.prev_close,NSE_Node.open_price,NSE_Node.high_price,NSE_Node.low_price,NSE_Node.last_price, NSE_Node.close_price, NSE_Node.avg_price, NSE_Node.ttl_trd_qt, NSE_Node.turnover_lakhs, NSE_Node.no_of_trades, NSE_Node.deliv_qty, NSE_Node.deliv_per)
     t = []
     for i in q.filter(NSE_Node.symbol == symbol):
-        t.append({'id':i.id, 'symbol':i.symbol, 'series': i.series, 'date': i.date, 'prev_close': i.prev_close, 'open_price':i.open_price,'high_price':i.high_price,'low_price':i.low_price,'last_price':i.last_price,'close_price':i.close_price,'avg_price':i.avg_price, 'ttl_trd_qt':i.ttl_trd_qt,'turnover_lakhs':i.turnover_lakhs, 'no_of_trades': i.no_of_trades, 'deliv_qty':i.deliv_qty, 'deliv_per':i.deliv_per})
+        t.append({"id":i.id, 'symbol':i.symbol, 'series': i.series, 'date': i.date, 'prev_close': i.prev_close, 'open_price':i.open_price,'high_price':i.high_price,'low_price':i.low_price,'last_price':i.last_price,'close_price':i.close_price,'avg_price':i.avg_price, 'ttl_trd_qt':i.ttl_trd_qt,'turnover_lakhs':i.turnover_lakhs, 'no_of_trades': i.no_of_trades, 'deliv_qty':i.deliv_qty, 'deliv_per':i.deliv_per})
 
     return jsonify({'status': 200, 'value': t})
 
