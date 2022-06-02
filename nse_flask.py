@@ -12,6 +12,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker, Query
 from sqlalchemy.ext.automap import automap_base
 from flask_cors import CORS
 import os
+from individual_company_stock import getHistoryData 
 
 engine = create_engine('sqlite:///nse.db', convert_unicode=True, echo=False)
 Base = automap_base()
@@ -124,15 +125,21 @@ def ticker():
 
 @app.route('/get_symbol', methods= ["GET"])
 def get_symbol():
-    db_session = scoped_session(sessionmaker(bind=engine))
+    #db_session = scoped_session(sessionmaker(bind=engine))
     args = request.args
     symbol = args.get("symbol")
-    q = db_session.query(NSE_Node.id, NSE_Node.symbol,NSE_Node.series,NSE_Node.date,NSE_Node.prev_close,NSE_Node.open_price,NSE_Node.high_price,NSE_Node.low_price,NSE_Node.last_price, NSE_Node.close_price, NSE_Node.avg_price, NSE_Node.ttl_trd_qt, NSE_Node.turnover_lakhs, NSE_Node.no_of_trades, NSE_Node.deliv_qty, NSE_Node.deliv_per)
+    '''q = db_session.query(NSE_Node.id, NSE_Node.symbol,NSE_Node.series,NSE_Node.date,NSE_Node.prev_close,NSE_Node.open_price,NSE_Node.high_price,NSE_Node.low_price,NSE_Node.last_price, NSE_Node.close_price, NSE_Node.avg_price, NSE_Node.ttl_trd_qt, NSE_Node.turnover_lakhs, NSE_Node.no_of_trades, NSE_Node.deliv_qty, NSE_Node.deliv_per)
     t = []
     for i in q.filter(NSE_Node.symbol == symbol):
         t.append({"id":i.id, 'symbol':i.symbol, 'series': i.series, 'date': i.date, 'prev_close': i.prev_close, 'open_price':i.open_price,'high_price':i.high_price,'low_price':i.low_price,'last_price':i.last_price,'close_price':i.close_price,'avg_price':i.avg_price, 'ttl_trd_qt':i.ttl_trd_qt,'turnover_lakhs':i.turnover_lakhs, 'no_of_trades': i.no_of_trades, 'deliv_qty':i.deliv_qty, 'deliv_per':i.deliv_per})
-
-    return jsonify({'status': 200, 'value': t})
+    '''
+    t = getHistoryData(symbol, from_date='30-04-2019',to_date='30-04-2021')
+    print(t)
+    json_records = t.reset_index().to_json(orient ='records')
+    data = []
+    data = json.loads(json_records)
+    
+    return jsonify({'status': 200, 'value': data})
 
 @app.route('/live', methods= ["GET"])
 def live():

@@ -9,6 +9,10 @@
     <script src=
 "https://code.jquery.com/jquery-3.5.1.js">
     </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
   
     <!-- CSS FOR STYLING THE PAGE -->
     <style>
@@ -52,11 +56,10 @@
 		<p>By: Jaskaran Bakshi</p>
 
         <button onclick="history.back()">Go Back</button>
-  
-        <!-- TABLE CONSTRUCTION-->
-        <table id='table'>
-            <!-- HEADING FORMATION -->
-            <tr>
+
+
+        <table id='table' class="table table-dark table-striped">
+           
                 <th>Trade Date</th>
                 <th>Symbol</th>
                 <th>Previous Close</th>
@@ -66,7 +69,7 @@
                 <th>Spot Close</th>
                 <th>Delivery %</th>
                 <th>Delivery Volume (Rs. Crore)</th>
-            </tr>
+        </table>
   
             <script>
                 function formatAsPercent(num) {
@@ -83,7 +86,7 @@
 
                         var student = '';
 
-                        console.log(data);
+                        console.log(data.value);
                         // ITERATING THROUGH OBJECTS
                         $.each(data.value, function (key, value) {
   
@@ -91,30 +94,30 @@
                             // DATA FROM JSON OBJECT
                             student += '<tr>';
                             student += '<td>' + 
-                                value.date + '</td>';
+                                value['Date '] + '</td>';
   
                             student += '<td>' + 
-                                value.symbol + '</td>';
+                                "{{symbol}}" + '</td>';
   
                             student += '<td>' + 
-                                value.prev_close + '</td>';
+                                value['PREV. CLOSE '] + '</td>';
   
                             student += '<td>' + 
-                                value.open_price + '</td>';
+                                value['OPEN '] + '</td>';
 
                             student += '<td>' + 
-                                value.high_price + '</td>';
+                                value['HIGH '] + '</td>';
 
                             student += '<td>' + 
-                                value.low_price + '</td>';
+                                value['LOW '] + '</td>';
 
                             student += '<td>' + 
-                                value.close_price + '</td>';
+                                value['close '] + '</td>';
 
                             student += '<td>' + 
-                                formatAsPercent(value.deliv_per) + '</td>';
+                                formatAsPercent(value['No of trades ']/value['VOLUME ']) + '</td>';
 
-                            var v = value.deliv_qty * value.close_price|| 0;
+                            var v = value['VOLUME '] * parseFloat(value['close ']) || 0;
                             student += '<td>' + v.toLocaleString('en-IN') + '</td>';
   
                             student += '</tr>';
